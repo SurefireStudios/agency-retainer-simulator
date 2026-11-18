@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Creative Agency Project & Retainer Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-paper: #F8F7F4;
+      --surface-white: #FFFFFF;
+      --ink-black: #111111;
+      --vermilion: #E63946;
+      --cobalt: #1D3557;
+      --ochre: #F4A261;
+      --emerald-swiss: #2A9D8F;
+      --grid-line: #E2DFD7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-paper);
+      color: var(--ink-black);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-variant-numeric: tabular-nums;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .font-mono-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Swiss Architectural Borders & Hard Shadows */
+    .swiss-card {
+      background-color: var(--surface-white);
+      border: 2px solid var(--ink-black);
+      border-radius: 3px;
+      box-shadow: 4px 4px 0px var(--ink-black);
+    }
+
+    .swiss-card-flat {
+      background-color: var(--surface-white);
+      border: 2px solid var(--ink-black);
+      border-radius: 3px;
+    }
+
+    .swiss-btn {
+      border: 2px solid var(--ink-black);
+      border-radius: 2px;
+      box-shadow: 2px 2px 0px var(--ink-black);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+    }
+
+    .swiss-btn:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0px var(--ink-black);
+    }
+
+    .swiss-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px var(--ink-black);
+    }
+
+    .swiss-btn.active-preset {
+      background-color: var(--ink-black);
+      color: #FFFFFF;
+    }
+
+    /* Custom Precision Swiss Range Sliders */
+    input[type="range"].swiss-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      background: #E6E4DD;
+      border: 2px solid var(--ink-black);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"].swiss-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 22px;
+      background: var(--vermilion);
+      border: 2px solid var(--ink-black);
+      border-radius: 2px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0px var(--ink-black);
+      transition: transform 0.1s ease, background-color 0.15s ease;
+    }
+
+    input[type="range"].swiss-slider::-webkit-slider-thumb:hover {
+      background: var(--cobalt);
+      transform: scale(1.06);
+    }
+
+    input[type="range"].swiss-slider::-moz-range-thumb {
+      width: 18px;
+      height: 22px;
+      background: var(--vermilion);
+      border: 2px solid var(--ink-black);
+      border-radius: 2px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0px var(--ink-black);
+    }
+
+    /* Custom Swiss Mechanical Toggle Switch */
+    .swiss-toggle-track {
+      width: 48px;
+      height: 26px;
+      background-color: #E6E4DD;
+      border: 2px solid var(--ink-black);
+      border-radius: 2px;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.18s ease;
+      flex-shrink: 0;
+    }
+
+    .swiss-toggle-track.checked {
+      background-color: var(--cobalt);
+    }
+
+    .swiss-toggle-thumb {
+      width: 18px;
+      height: 18px;
+      background-color: #FFFFFF;
+      border: 2px solid var(--ink-black);
+      border-radius: 1px;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .swiss-toggle-track.checked .swiss-toggle-thumb {
+      transform: translateX(22px);
+      background-color: var(--ochre);
+    }
+
+    /* Subtle Geometric Paper Grid Background */
+    .bg-swiss-grid {
+      background-image: 
+        linear-gradient(to right, rgba(17, 17, 17, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(17, 17, 17, 0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* Tooltip Styling */
+    #chartTooltip {
+      pointer-events: none;
+      transition: opacity 0.12s ease, transform 0.12s ease;
+    }
+  </style>
+</head>
+<body class="bg-swiss-grid min-h-screen flex flex-col">
+
+  <!-- Top Header Bar: Swiss Typographic Masthead -->
+  <header class="border-b-2 border-[#111111] bg-[#F8F7F4] sticky top-0 z-30">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <!-- Brand & Title -->
+      <div class="flex items-start sm:items-center gap-3.5">
+        <!-- Geometric Bauhaus / Swiss Mark -->
+        <div class="w-11 h-11 border-2 border-[#111111] bg-[#1D3557] flex-shrink-0 grid grid-cols-2 grid-rows-2 overflow-hidden shadow-[2px_2px_0px_#111111]">
+          <div class="bg-[#E63946] border-r border-b border-[#111111]"></div>
+          <div class="bg-[#F8F7F4] border-b border-[#111111] flex items-center justify-center">
+            <div class="w-2.5 h-2.5 rounded-full bg-[#111111]"></div>
+          </div>
+          <div class="bg-[#F4A261] border-r border-[#111111]"></div>
+          <div class="bg-[#1D3557]"></div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-bold uppercase tracking-[0.16em] px-1.5 py-0.5 bg-[#111111] text-[#F8F7F4]">STUDIO ECONOMICS v2.4</span>
+            <span class="text-xs font-semibold text-[#1D3557] hidden sm:inline">CAPACITY &amp; MARGIN SANDBOX</span>
+          </div>
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#111111] mt-0.5">
+            Creative Agency Project &amp; Retainer Simulator
+          </h1>
+        </div>
+      </div>
+
+      <!-- Preset Scenario Buttons -->
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-[#111111]/70 mr-1">Scenarios:</span>
+        <button type="button" data-preset="solo" class="preset-btn swiss-btn bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide cursor-pointer">
+          Solo Boutique
+        </button>
+        <button type="button" data-preset="retainer" class="preset-btn swiss-btn bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide cursor-pointer">
+          High-Margin Retainer
+        </button>
+        <button type="button" data-preset="scaleup" class="preset-btn swiss-btn bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide cursor-pointer">
+          Agency Scale-Up
+        </button>
+        <button type="button" data-preset="reset" class="preset-btn swiss-btn bg-[#F4A261] text-[#111111] px-3 py-1.5 text-xs font-bold uppercase tracking-wide cursor-pointer">
+          Reset
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Two-Column Dashboard -->
+  <main class="max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- LEFT PANEL: Interactive Controls (4 Columns on Desktop) -->
+      <aside class="lg:col-span-4 space-y-6">
+        
+        <!-- Sliders Card -->
+        <section class="swiss-card p-5">
+          <div class="flex items-center justify-between border-b-2 border-[#111111] pb-3 mb-5">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 bg-[#E63946] border border-[#111111] inline-block"></span>
+              <h2 class="text-sm font-extrabold uppercase tracking-wider">01 / Studio Parameters</h2>
+            </div>
+            <span class="font-mono-num text-[11px] font-bold px-2 py-0.5 bg-[#F8F7F4] border border-[#111111]">INPUTS</span>
+          </div>
+
+          <div class="space-y-5">
+            <!-- Slider 1: Target Hourly Rate -->
+            <div>
+              <div class="flex justify-between items-baseline mb-1.5">
+                <label for="sliderRate" class="text-xs font-bold uppercase tracking-wide text-[#111111]">
+                  Target Hourly Rate
+                </label>
+                <span id="valRate" class="font-mono-num text-base font-bold px-2 py-0.5 bg-[#1D3557] text-white border border-[#111111]">
+                  $125/hr
+                </span>
+              </div>
+              <input id="sliderRate" type="range" min="50" max="300" step="5" value="125" class="swiss-slider" />
+              <div class="flex justify-between text-[11px] font-mono-num text-[#111111]/60 mt-1">
+                <span>$50/hr</span>
+                <span>$175/hr</span>
+                <span>$300/hr</span>
+              </div>
+            </div>
+
+            <!-- Slider 2: Estimated Project Hours per Client -->
+            <div>
+              <div class="flex justify-between items-baseline mb-1.5">
+                <label for="sliderHours" class="text-xs font-bold uppercase tracking-wide text-[#111111]">
+                  Est. Hours / Client / Mo
+                </label>
+                <span id="valHours" class="font-mono-num text-base font-bold px-2 py-0.5 bg-[#F8F7F4] text-[#111111] border border-[#111111]">
+                  40 hrs
+                </span>
+              </div>
+              <input id="sliderHours" type="range" min="10" max="120" step="2" value="40" class="swiss-slider" />
+              <div class="flex justify-between text-[11px] font-mono-num text-[#111111]/60 mt-1">
+                <span>10 hrs</span>
+                <span>65 hrs</span>
+                <span>120 hrs</span>
+              </div>
+            </div>
+
+            <!-- Slider 3: Active Retainer Clients -->
+            <div>
+              <div class="flex justify-between items-baseline mb-1.5">
+                <label for="sliderClients" class="text-xs font-bold uppercase tracking-wide text-[#111111]">
+                  Active Retainer Clients
+                </label>
+                <span id="valClients" class="font-mono-num text-base font-bold px-2 py-0.5 bg-[#E63946] text-white border border-[#111111]">
+                  3 clients
+                </span>
+              </div>
+              <input id="sliderClients" type="range" min="1" max="10" step="1" value="3" class="swiss-slider" />
+              <div class="flex justify-between text-[11px] font-mono-num text-[#111111]/60 mt-1">
+                <span>1</span>
+                <span>5</span>
+                <span>10</span>
+              </div>
+            </div>
+
+            <!-- Slider 4: Scope Creep Buffer -->
+            <div>
+              <div class="flex justify-between items-baseline mb-1.5">
+                <label for="sliderCreep" class="text-xs font-bold uppercase tracking-wide text-[#111111]">
+                  Scope Creep Buffer
+                </label>
+                <span id="valCreep" class="font-mono-num text-base font-bold px-2 py-0.5 bg-[#F4A261] text-[#111111] border border-[#111111]">
+                  15%
+                </span>
+              </div>
+              <input id="sliderCreep" type="range" min="0" max="50" step="1" value="15" class="swiss-slider" />
+              <div class="flex justify-between text-[11px] font-mono-num text-[#111111]/60 mt-1">
+                <span>0% (Tight)</span>
+                <span>25%</span>
+                <span>50% (Chaotic)</span>
+              </div>
+            </div>
+
+            <!-- Slider 5: Monthly Fixed Overhead -->
+            <div>
+              <div class="flex justify-between items-baseline mb-1.5">
+                <label for="sliderOverhead" class="text-xs font-bold uppercase tracking-wide text-[#111111]">
+                  Monthly Fixed Overhead
+                </label>
+                <span id="valOverhead" class="font-mono-num text-base font-bold px-2 py-0.5 bg-[#F8F7F4] text-[#111111] border border-[#111111]">
+                  $1,800
+                </span>
+              </div>
+              <input id="sliderOverhead" type="range" min="500" max="10000" step="100" value="1800" class="swiss-slider" />
+              <div class="flex justify-between text-[11px] font-mono-num text-[#111111]/60 mt-1">
+                <span>$500</span>
+                <span>$5,000</span>
+                <span>$10,000</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Toggles Card -->
+        <section class="swiss-card p-5">
+          <div class="flex items-center justify-between border-b-2 border-[#111111] pb-3 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 bg-[#1D3557] border border-[#111111] inline-block"></span>
+              <h2 class="text-sm font-extrabold uppercase tracking-wider">02 / Pricing &amp; Delivery Levers</h2>
+            </div>
+            <span class="font-mono-num text-[11px] font-bold px-2 py-0.5 bg-[#F8F7F4] border border-[#111111]">MODIFIERS</span>
+          </div>
+
+          <div class="space-y-3.5">
+            <!-- Toggle 1: Rush Fee -->
+            <div class="p-3 border-2 border-[#111111] bg-[#F8F7F4] flex items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-extrabold uppercase tracking-wide">Rush Fee Multiplier</span>
+                  <span class="font-mono-num text-[10px] font-bold px-1.5 py-0.2 bg-[#E63946] text-white">+25% REV</span>
+                </div>
+                <p class="text-[11px] text-[#111111]/75 mt-0.5 leading-snug">
+                  Applies a +25% expedited turnaround surcharge on core project fees.
+                </p>
+              </div>
+              <button type="button" id="toggleRush" role="switch" aria-checked="false" class="swiss-toggle-track" aria-label="Rush Fee Multiplier">
+                <span class="swiss-toggle-thumb"></span>
+              </button>
+            </div>
+
+            <!-- Toggle 2: Ongoing Hosting & Maintenance -->
+            <div class="p-3 border-2 border-[#111111] bg-[#F8F7F4] flex items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-extrabold uppercase tracking-wide">Hosting &amp; Maintenance</span>
+                  <span class="font-mono-num text-[10px] font-bold px-1.5 py-0.2 bg-[#1D3557] text-white">+$350/CL</span>
+                </div>
+                <p class="text-[11px] text-[#111111]/75 mt-0.5 leading-snug">
+                  Adds +$350/client/mo recurring revenue and +3 hrs/client/mo support load.
+                </p>
+              </div>
+              <button type="button" id="toggleMaintenance" role="switch" aria-checked="false" class="swiss-toggle-track" aria-label="Include Ongoing Hosting and Maintenance">
+                <span class="swiss-toggle-thumb"></span>
+              </button>
+            </div>
+
+            <!-- Toggle 3: Subcontract Web Development -->
+            <div class="p-3 border-2 border-[#111111] bg-[#F8F7F4] flex items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-extrabold uppercase tracking-wide">Subcontract Web Dev</span>
+                  <span class="font-mono-num text-[10px] font-bold px-1.5 py-0.2 bg-[#F4A261] text-[#111111]">-40% HRS</span>
+                </div>
+                <p class="text-[11px] text-[#111111]/75 mt-0.5 leading-snug">
+                  Cuts studio delivery hours by 40%, adding 30% contractor cost on base revenue.
+                </p>
+              </div>
+              <button type="button" id="toggleSubcontract" role="switch" aria-checked="false" class="swiss-toggle-track" aria-label="Subcontract Web Development">
+                <span class="swiss-toggle-thumb"></span>
+              </button>
+            </div>
+
+            <!-- Toggle 4: Value-Based Pricing Mode -->
+            <div class="p-3 border-2 border-[#111111] bg-[#F8F7F4] flex items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-extrabold uppercase tracking-wide">Value-Based Pricing</span>
+                  <span class="font-mono-num text-[10px] font-bold px-1.5 py-0.2 bg-[#2A9D8F] text-white">+20% CAP</span>
+                </div>
+                <p class="text-[11px] text-[#111111]/75 mt-0.5 leading-snug">
+                  Adds +20% package premium &amp; caps unbilled scope creep at 5% via fixed deliverables.
+                </p>
+              </div>
+              <button type="button" id="toggleValue" role="switch" aria-checked="false" class="swiss-toggle-track" aria-label="Value-Based Pricing Mode">
+                <span class="swiss-toggle-thumb"></span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </aside>
+
+      <!-- RIGHT PANEL: Live KPIs, Charts & Insights (8 Columns on Desktop) -->
+      <div class="lg:col-span-8 space-y-6">
+
+        <!-- 1. Top KPI Summary Strip (4 Bold Geometric Cards) -->
+        <section aria-label="Key Performance Indicators" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          
+          <!-- KPI 1: Monthly Net Profit -->
+          <div class="swiss-card p-4 relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#111111]/75">Monthly Net Profit</span>
+              <span class="w-3 h-3 bg-[#1D3557] border border-[#111111]"></span>
+            </div>
+            <div id="kpiNetProfit" class="font-mono-num text-2xl sm:text-3xl font-bold tracking-tight text-[#111111]">
+              $13,200
+            </div>
+            <div id="kpiMarginSub" class="font-mono-num text-xs font-semibold text-[#1D3557] mt-1.5">
+              Gross: $15,000 (88% margin)
+            </div>
+          </div>
+
+          <!-- KPI 2: Effective Hourly Rate -->
+          <div class="swiss-card p-4 relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#111111]/75">Effective Hourly</span>
+              <span class="w-3 h-3 rounded-full bg-[#F4A261] border border-[#111111]"></span>
+            </div>
+            <div id="kpiEffectiveRate" class="font-mono-num text-2xl sm:text-3xl font-bold tracking-tight text-[#111111]">
+              $95.65/hr
+            </div>
+            <div id="kpiRateDelta" class="font-mono-num text-xs font-semibold text-[#E63946] mt-1.5">
+              -$29.35 vs target rate
+            </div>
+          </div>
+
+          <!-- KPI 3: Weekly Capacity Utilization -->
+          <div id="cardCapacity" class="swiss-card p-4 relative overflow-hidden transition-colors duration-200">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#111111]/75">Weekly Capacity</span>
+              <span id="dotCapacity" class="w-3 h-3 bg-[#2A9D8F] border border-[#111111]"></span>
+            </div>
+            <div id="kpiCapacity" class="font-mono-num text-2xl sm:text-3xl font-bold tracking-tight text-[#111111]">
+              80%
+            </div>
+            <div id="kpiWeeklyHours" class="font-mono-num text-xs font-semibold text-[#111111]/80 mt-1.5">
+              31.8 hrs / 40h workweek
+            </div>
+          </div>
+
+          <!-- KPI 4: Burnout Risk Index -->
+          <div id="cardBurnout" class="swiss-card p-4 relative overflow-hidden transition-colors duration-200">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#111111]/75">Burnout Risk Index</span>
+              <span id="dotBurnout" class="w-3 h-3 bg-[#2A9D8F] border border-[#111111]"></span>
+            </div>
+            <div id="kpiBurnoutLevel" class="text-2xl sm:text-3xl font-extrabold tracking-tight uppercase text-[#111111]">
+              LOW
+            </div>
+            <div id="kpiBurnoutSub" class="font-mono-num text-xs font-semibold text-[#111111]/80 mt-1.5">
+              Sustainable pace
+            </div>
+          </div>
+
+        </section>
+
+        <!-- 2. Interactive Chart 1: Client Scaling Curve (1 to 10 Clients) -->
+        <section class="swiss-card p-5">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b-2 border-[#111111] pb-3 mb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 bg-[#E63946] border border-[#111111]"></span>
+                <h2 class="text-sm font-extrabold uppercase tracking-wider">03 / Client Scaling &amp; Diminishing Returns Curve</h2>
+              </div>
+              <p class="text-xs text-[#111111]/75 mt-0.5">
+                Compare Monthly Net Profit ($) vs. Effective Hourly Rate ($/hr) across 1–10 active clients. Hover points to inspect.
+              </p>
+            </div>
+            <!-- Legend -->
+            <div class="flex flex-wrap items-center gap-3 text-[11px] font-bold">
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 bg-[#1D3557] border border-[#111111] inline-block"></span>
+                <span>Net Profit ($)</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-1 bg-[#E63946] inline-block"></span>
+                <span>Effective $/hr</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 bg-[#2A9D8F]/30 border border-[#2A9D8F] inline-block"></span>
+                <span>Sweet Spot (&le;45h/wk)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Responsive SVG Chart Wrapper -->
+          <div class="relative w-full select-none" id="scalingChartContainer">
+            <svg id="scalingChartSvg" class="w-full h-[290px] sm:h-[320px] block overflow-visible" role="img" aria-label="Dual axis scaling chart comparing net profit and effective hourly rate across client counts"></svg>
+            
+            <!-- Interactive Floating Tooltip -->
+            <div id="chartTooltip" class="hidden absolute z-20 bg-[#111111] text-[#F8F7F4] border-2 border-[#111111] shadow-[4px_4px_0px_#E63946] p-3 rounded-[2px] text-xs w-56">
+              <div class="flex items-center justify-between border-b border-white/20 pb-1.5 mb-1.5">
+                <span id="ttClients" class="font-extrabold uppercase tracking-wider text-[#F4A261]">3 Clients</span>
+                <span id="ttBadge" class="font-mono-num text-[10px] px-1.5 py-0.5 bg-[#2A9D8F] text-[#111111] font-bold">OPTIMAL</span>
+              </div>
+              <div class="space-y-1 font-mono-num text-[11px]">
+                <div class="flex justify-between">
+                  <span class="text-white/70">Net Profit:</span>
+                  <span id="ttProfit" class="font-bold text-white">$13,200</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-white/70">Effective Rate:</span>
+                  <span id="ttEffRate" class="font-bold text-[#F4A261]">$95.65/hr</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-white/70">Weekly Hours:</span>
+                  <span id="ttWeeklyHrs" class="font-bold text-white">31.8 hrs/wk</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-white/70">Utilization:</span>
+                  <span id="ttUtil" class="font-bold text-white">80%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Interactive Chart 2: Revenue & Time Allocation Stacked Breakdown -->
+        <section class="swiss-card p-5">
+          <div class="flex items-center justify-between border-b-2 border-[#111111] pb-3 mb-5">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 bg-[#F4A261] border border-[#111111]"></span>
+              <h2 class="text-sm font-extrabold uppercase tracking-wider">04 / Dollar &amp; Weekly Hour Allocation Waterfall</h2>
+            </div>
+            <span class="font-mono-num text-[11px] font-bold px-2 py-0.5 bg-[#F8F7F4] border border-[#111111]">UNIT ECONOMICS</span>
+          </div>
+
+          <div class="space-y-6">
+            <!-- Bar A: Monthly Economic Value Breakdown -->
+            <div>
+              <div class="flex flex-wrap justify-between items-baseline mb-2 gap-2">
+                <span class="text-xs font-extrabold uppercase tracking-wide">
+                  A. Potential Monthly Value vs. Realized Net Profit
+                </span>
+                <span id="totalPotentialDollar" class="font-mono-num text-xs font-bold text-[#111111]">
+                  Total Value Generated: $17,250/mo
+                </span>
+              </div>
+              
+              <!-- Stacked Horizontal Bar -->
+              <div id="dollarBarContainer" class="w-full h-11 border-2 border-[#111111] bg-[#E6E4DD] flex overflow-hidden rounded-[2px]">
+                <div id="barNetProfit" class="h-full bg-[#1D3557] text-white flex items-center justify-center font-mono-num text-xs font-bold transition-all duration-300 overflow-hidden px-1" style="width: 70%;">
+                  Net Profit
+                </div>
+                <div id="barOverhead" class="h-full bg-[#F4A261] text-[#111111] border-l-2 border-[#111111] flex items-center justify-center font-mono-num text-xs font-bold transition-all duration-300 overflow-hidden px-1" style="width: 12%;">
+                  Overhead
+                </div>
+                <div id="barSubcontractor" class="h-full bg-[#2A9D8F] text-white border-l-2 border-[#111111] flex items-center justify-center font-mono-num text-xs font-bold transition-all duration-300 overflow-hidden px-1" style="width: 0%;">
+                  Subcontract
+                </div>
+                <div id="barCreepLoss" class="h-full bg-[#E63946] text-white border-l-2 border-[#111111] flex items-center justify-center font-mono-num text-xs font-bold transition-all duration-300 overflow-hidden px-1" style="width: 18%;">
+                  Unbilled Creep
+                </div>
+              </div>
+
+              <!-- Detailed Dollar Legend -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5 text-xs">
+                <div class="p-2 border border-[#111111] bg-[#F8F7F4]">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-[#111111]/75">
+                    <span class="w-2.5 h-2.5 bg-[#1D3557] border border-[#111111]"></span> Net Profit
+                  </div>
+                  <div id="legProfit" class="font-mono-num font-bold text-sm mt-0.5">$13,200</div>
+                </div>
+                <div class="p-2 border border-[#111111] bg-[#F8F7F4]">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-[#111111]/75">
+                    <span class="w-2.5 h-2.5 bg-[#F4A261] border border-[#111111]"></span> Fixed Overhead
+                  </div>
+                  <div id="legOverhead" class="font-mono-num font-bold text-sm mt-0.5">$1,800</div>
+                </div>
+                <div class="p-2 border border-[#111111] bg-[#F8F7F4]">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-[#111111]/75">
+                    <span class="w-2.5 h-2.5 bg-[#2A9D8F] border border-[#111111]"></span> Dev Contractor
+                  </div>
+                  <div id="legSubcontract" class="font-mono-num font-bold text-sm mt-0.5">$0</div>
+                </div>
+                <div class="p-2 border border-[#111111] bg-[#F8F7F4]">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-[#111111]/75">
+                    <span class="w-2.5 h-2.5 bg-[#E63946] border border-[#111111]"></span> Unbilled Creep
+                  </div>
+                  <div id="legCreepLoss" class="font-mono-num font-bold text-sm mt-0.5 text-[#E63946]">$2,250</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bar B: Weekly Studio Hours Allocation -->
+            <div class="pt-4 border-t border-[#111111]/20">
+              <div class="flex flex-wrap justify-between items-baseline mb-2 gap-2">
+                <span class="text-xs font-extrabold uppercase tracking-wide">
+                  B. Weekly Studio Time Allocation (vs. 40h Standard Capacity)
+                </span>
+                <span id="totalWeeklyHoursLabel" class="font-mono-num text-xs font-bold text-[#111111]">
+                  Total Workload: 31.8 hrs/wk
+                </span>
+              </div>
+
+              <!-- Stacked Horizontal Time Bar -->
+              <div class="w-full h-11 border-2 border-[#111111] bg-[#E6E4DD] flex overflow-hidden rounded-[2px] relative">
+                <div id="barCoreHours" class="h-full bg-[#111111] text-white flex items-center justify-center font-mono-num text-xs font-bold transition-all duration-300 overflow-hidden px-1" style="width: 65%;">
+                  Core Delivery
+                </div>
+                <div id="barCreepHours" class="h-full bg-[#F4A261] text-[#111111] border-l-2 border-[#111111] flex items-center justify-center font-mono-num text-xs font-bold transition-all duration-300 overflow-hidden px-1" style="width: 15%;">
+                  Creep
+                </div>
+                <div id="barMaintHours" class="h-full bg-[#2A9D8F] text-white border-l-2 border-[#111111] flex items-center justify-center font-mono-num text-xs font-bold transition-all duration-300 overflow-hidden px-1" style="width: 0%;">
+                  Maint.
+                </div>
+                <div id="barOvertimeHours" class="h-full bg-[#E63946] text-white border-l-2 border-[#111111] flex items-center justify-center font-mono-num text-xs font-bold transition-all duration-300 overflow-hidden px-1" style="width: 0%;">
+                  Overtime
+                </div>
+              </div>
+
+              <!-- Detailed Hours Legend -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5 text-xs">
+                <div class="p-2 border border-[#111111] bg-[#F8F7F4]">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-[#111111]/75">
+                    <span class="w-2.5 h-2.5 bg-[#111111]"></span> Core Billable
+                  </div>
+                  <div id="legCoreHrs" class="font-mono-num font-bold text-sm mt-0.5">27.7 hrs/wk</div>
+                </div>
+                <div class="p-2 border border-[#111111] bg-[#F8F7F4]">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-[#111111]/75">
+                    <span class="w-2.5 h-2.5 bg-[#F4A261] border border-[#111111]"></span> Scope Creep
+                  </div>
+                  <div id="legCreepHrs" class="font-mono-num font-bold text-sm mt-0.5">4.2 hrs/wk</div>
+                </div>
+                <div class="p-2 border border-[#111111] bg-[#F8F7F4]">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-[#111111]/75">
+                    <span class="w-2.5 h-2.5 bg-[#2A9D8F] border border-[#111111]"></span> Maintenance
+                  </div>
+                  <div id="legMaintHrs" class="font-mono-num font-bold text-sm mt-0.5">0.0 hrs/wk</div>
+                </div>
+                <div class="p-2 border border-[#111111] bg-[#F8F7F4]">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-[#111111]/75">
+                    <span class="w-2.5 h-2.5 bg-[#E63946] border border-[#111111]"></span> Burnout (&gt;40h)
+                  </div>
+                  <div id="legOvertimeHrs" class="font-mono-num font-bold text-sm mt-0.5">0.0 hrs/wk</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Dynamic Decision Insight Banner -->
+        <section id="insightBanner" class="swiss-card p-5 bg-[#1D3557] text-white transition-colors duration-200">
+          <div class="flex flex-col sm:flex-row items-start gap-4">
+            <!-- Bold Geometric Advisory Badge -->
+            <div id="insightBadge" class="px-3 py-1.5 bg-[#F4A261] text-[#111111] border-2 border-[#111111] font-mono-num text-xs font-extrabold uppercase tracking-wider flex-shrink-0 shadow-[2px_2px_0px_#111111]">
+              ADVISORY INSIGHT
+            </div>
+            <div class="flex-1">
+              <h3 id="insightHeadline" class="text-base sm:text-lg font-extrabold tracking-tight leading-snug">
+                Scope creep is eroding $2,250/mo of unbilled studio capacity.
+              </h3>
+              <p id="insightBody" class="text-xs sm:text-sm text-white/90 mt-1.5 leading-relaxed">
+                Enabling Value-Based Pricing caps unbilled revisions at 5% and adds a 20% package premium—boosting your Effective Hourly Rate from $95.65/hr to $126.09/hr without adding a single extra client.
+              </p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Minimal Swiss Footer -->
+  <footer class="border-t-2 border-[#111111] bg-[#F8F7F4] mt-8">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row justify-between items-center text-[11px] font-mono-num text-[#111111]/75 gap-2">
+      <span>CREATIVE AGENCY PROJECT &amp; RETAINER SIMULATOR // 4.33 WEEKS/MO MODEL</span>
+      <span>ALL CALCULATIONS REAL-TIME &amp; CLIENT-SIDE</span>
+    </div>
+  </footer>
+
+  <script>
+    /**
+     * Creative Agency Project & Retainer Simulator
+     * Models revenue, subcontractor costs, scope creep time leakage,
+     * effective hourly rate, weekly burnout thresholds, and optimal client scaling.
+     */
+    (function () {
+      // Standard workweeks per month (52 weeks / 12 months)
+      const WEEKS_PER_MONTH = 4.3333;
+      const STANDARD_WEEKLY_HOURS = 40;
+      const BURNOUT_SWEET_SPOT_CAP = 45; // Max weekly hours before crossing burnout threshold
+
+      // Application State
+      const state = {
+        hourlyRate: 125,
+        hoursPerClient: 40,
+        clients: 3,
+        scopeCreepPct: 15,
+        overhead: 1800,
+        rushFee: false,
+        maintenance: false,
+        subcontract: false,
+        valuePricing: false,
+        activePreset: 'reset'
+      };
+
+      // Preset Configurations
+      const PRESETS = {
+        solo: {
+          hourlyRate: 110,
+          hoursPerClient: 45,
+          clients: 2,
+          scopeCreepPct: 20,
+          overhead: 900,
+          rushFee: false,
+          maintenance: true,
+          subcontract: false,
+          valuePricing: false
+        },
+        retainer: {
+          hourlyRate: 165,
+          hoursPerClient: 30,
+          clients: 4,
+          scopeCreepPct: 10,
+          overhead: 2200,
+          rushFee: false,
+          maintenance: true,
+          subcontract: false,
+          valuePricing: true
+        },
+        scaleup: {
+          hourlyRate: 150,
+          hoursPerClient: 50,
+          clients: 7,
+          scopeCreepPct: 18,
+          overhead: 6500,
+          rushFee: true,
+          maintenance: true,
+          subcontract: true,
+          valuePricing: true
+        },
+        reset: {
+          hourlyRate: 125,
+          hoursPerClient: 40,
+          clients: 3,
+          scopeCreepPct: 15,
+          overhead: 1800,
+          rushFee: false,
+          maintenance: false,
+          subcontract: false,
+          valuePricing: false
+        }
+      };
+
+      // DOM References
+      const els = {
+        sliderRate: document.getElementById('sliderRate'),
+        sliderHours: document.getElementById('sliderHours'),
+        sliderClients: document.getElementById('sliderClients'),
+        sliderCreep: document.getElementById('sliderCreep'),
+        sliderOverhead: document.getElementById('sliderOverhead'),
+
+        valRate: document.getElementById('valRate'),
+        valHours: document.getElementById('valHours'),
+        valClients: document.getElementById('valClients'),
+        valCreep: document.getElementById('valCreep'),
+        valOverhead: document.getElementById('valOverhead'),
+
+        toggleRush: document.getElementById('toggleRush'),
+        toggleMaintenance: document.getElementById('toggleMaintenance'),
+        toggleSubcontract: document.getElementById('toggleSubcontract'),
+        toggleValue: document.getElementById('toggleValue'),
+
+        kpiNetProfit: document.getElementById('kpiNetProfit'),
+        kpiMarginSub: document.getElementById('kpiMarginSub'),
+        kpiEffectiveRate: document.getElementById('kpiEffectiveRate'),
+        kpiRateDelta: document.getElementById('kpiRateDelta'),
+        cardCapacity: document.getElementById('cardCapacity'),
+        dotCapacity: document.getElementById('dotCapacity'),
+        kpiCapacity: document.getElementById('kpiCapacity'),
+        kpiWeeklyHours: document.getElementById('kpiWeeklyHours'),
+        cardBurnout: document.getElementById('cardBurnout'),
+        dotBurnout: document.getElementById('dotBurnout'),
+        kpiBurnoutLevel: document.getElementById('kpiBurnoutLevel'),
+        kpiBurnoutSub: document.getElementById('kpiBurnoutSub'),
+
+        scalingChartSvg: document.getElementById('scalingChartSvg'),
+        scalingChartContainer: document.getElementById('scalingChartContainer'),
+        chartTooltip: document.getElementById('chartTooltip'),
+        ttClients: document.getElementById('ttClients'),
+        ttBadge: document.getElementById('ttBadge'),
+        ttProfit: document.getElementById('ttProfit'),
+        ttEffRate: document.getElementById('ttEffRate'),
+        ttWeeklyHrs: document.getElementById('ttWeeklyHrs'),
+        ttUtil: document.getElementById('ttUtil'),
+
+        totalPotentialDollar: document.getElementById('totalPotentialDollar'),
+        barNetProfit: document.getElementById('barNetProfit'),
+        barOverhead: document.getElementById('barOverhead'),
+        barSubcontractor: document.getElementById('barSubcontractor'),
+        barCreepLoss: document.getElementById('barCreepLoss'),
+        legProfit: document.getElementById('legProfit'),
+        legOverhead: document.getElementById('legOverhead'),
+        legSubcontract: document.getElementById('legSubcontract'),
+        legCreepLoss: document.getElementById('legCreepLoss'),
+
+        totalWeeklyHoursLabel: document.getElementById('totalWeeklyHoursLabel'),
+        barCoreHours: document.getElementById('barCoreHours'),
+        barCreepHours: document.getElementById('barCreepHours'),
+        barMaintHours: document.getElementById('barMaintHours'),
+        barOvertimeHours: document.getElementById('barOvertimeHours'),
+        legCoreHrs: document.getElementById('legCoreHrs'),
+        legCreepHrs: document.getElementById('legCreepHrs'),
+        legMaintHrs: document.getElementById('legMaintHrs'),
+        legOvertimeHrs: document.getElementById('legOvertimeHrs'),
+
+        insightBanner: document.getElementById('insightBanner'),
+        insightBadge: document.getElementById('insightBadge'),
+        insightHeadline: document.getElementById('insightHeadline'),
+        insightBody: document.getElementById('insightBody'),
+
+        presetBtns: document.querySelectorAll('.preset-btn')
+      };
+
+      // Currency & Number Formatters
+      const fmtCurrency = (val) => {
+        const sign = val < 0 ? '-' : '';
+        return sign + '$' + Math.abs(Math.round(val)).toLocaleString('en-US');
+      };
+
+      const fmtRate = (val) => {
+        return '$' + val.toFixed(2) + '/hr';
+      };
+
+      /**
+       * Core Financial & Capacity Engine
+       * Computes metrics for a given client count and current studio settings.
+       */
+      function simulateForClients(clientCount, cfg = state) {
+        // 1. Base Project Revenue per client
+        let baseClientProjectRev = cfg.hourlyRate * cfg.hoursPerClient;
+
+        // Value-based pricing adds +20% flat package premium & caps unbilled scope creep at 5%
+        if (cfg.valuePricing) {
+          baseClientProjectRev *= 1.20;
+        }
+
+        // Rush fee adds +25% revenue multiplier on core project revenue
+        if (cfg.rushFee) {
+          baseClientProjectRev *= 1.25;
+        }
+
+        const totalBaseProjectRev = baseClientProjectRev * clientCount;
+
+        // Maintenance add-on (+$350/client/mo, +3 hrs/client/mo)
+        const maintenanceRev = cfg.maintenance ? (350 * clientCount) : 0;
+        const grossRevenue = totalBaseProjectRev + maintenanceRev;
+
+        // 2. Direct Subcontractor Cost (30% of base project revenue)
+        const subcontractorCost = cfg.subcontract ? (totalBaseProjectRev * 0.30) : 0;
+
+        // 3. Monthly Net Profit
+        const netProfit = grossRevenue - subcontractorCost - cfg.overhead;
+        const profitMarginPct = grossRevenue > 0 ? (netProfit / grossRevenue) * 100 : 0;
+
+        // 4. Hours & Capacity Breakdown
+        // Subcontracting cuts studio core delivery hours by 40%
+        const deliveryFactor = cfg.subcontract ? 0.60 : 1.0;
+        const coreMonthlyHours = cfg.hoursPerClient * clientCount * deliveryFactor;
+
+        // Effective scope creep % (capped at 5% when Value-Based Pricing is active)
+        const effectiveCreepPct = cfg.valuePricing ? Math.min(cfg.scopeCreepPct, 5) : cfg.scopeCreepPct;
+        const creepMonthlyHours = coreMonthlyHours * (effectiveCreepPct / 100);
+
+        // Maintenance hours
+        const maintMonthlyHours = cfg.maintenance ? (3 * clientCount) : 0;
+
+        const totalMonthlyHours = coreMonthlyHours + creepMonthlyHours + maintMonthlyHours;
+        const weeklyHours = totalMonthlyHours / WEEKS_PER_MONTH;
+        const utilizationPct = (weeklyHours / STANDARD_WEEKLY_HOURS) * 100;
+
+        // 5. Effective Hourly Rate (Net Profit divided by actual total hours worked)
+        const effectiveHourlyRate = totalMonthlyHours > 0 ? (netProfit / totalMonthlyHours) : 0;
+
+        // Opportunity value of unbilled scope creep hours
+        const unbilledCreepDollarValue = creepMonthlyHours * cfg.hourlyRate;
+
+        // Burnout Classification
+        let burnoutLevel = 'LOW';
+        let burnoutSub = 'Sustainable studio pace';
+        if (weeklyHours > 52) {
+          burnoutLevel = 'CRITICAL';
+          burnoutSub = 'Severe overload (>52h/wk)';
+        } else if (weeklyHours > 45) {
+          burnoutLevel = 'HIGH';
+          burnoutSub = 'Exceeds 45h/wk threshold';
+        } else if (weeklyHours > 36) {
+          burnoutLevel = 'MODERATE';
+          burnoutSub = 'Near full capacity';
+        }
+
+        return {
+          clientCount,
+          grossRevenue,
+          totalBaseProjectRev,
+          maintenanceRev,
+          subcontractorCost,
+          overhead: cfg.overhead,
+          netProfit,
+          profitMarginPct,
+          coreMonthlyHours,
+          creepMonthlyHours,
+          maintMonthlyHours,
+          totalMonthlyHours,
+          weeklyHours,
+          utilizationPct,
+          effectiveHourlyRate,
+          unbilledCreepDollarValue,
+          effectiveCreepPct,
+          burnoutLevel,
+          burnoutSub
+        };
+      }
+
+      /**
+       * Renders all UI components, KPI cards, SVG chart, stacked bars, and advisory insight.
+       */
+      function updateDashboard() {
+        // Sync control readouts
+        els.valRate.textContent = `$${state.hourlyRate}/hr`;
+        els.valHours.textContent = `${state.hoursPerClient} hrs`;
+        els.valClients.textContent = `${state.clients} ${state.clients === 1 ? 'client' : 'clients'}`;
+        els.valCreep.textContent = `${state.scopeCreepPct}%`;
+        els.valOverhead.textContent = fmtCurrency(state.overhead);
+
+        // Sync slider positions (in case preset was clicked)
+        els.sliderRate.value = state.hourlyRate;
+        els.sliderHours.value = state.hoursPerClient;
+        els.sliderClients.value = state.clients;
+        els.sliderCreep.value = state.scopeCreepPct;
+        els.sliderOverhead.value = state.overhead;
+
+        // Sync toggles
+        syncToggleVisual(els.toggleRush, state.rushFee);
+        syncToggleVisual(els.toggleMaintenance, state.maintenance);
+        syncToggleVisual(els.toggleSubcontract, state.subcontract);
+        syncToggleVisual(els.toggleValue, state.valuePricing);
+
+        // Highlight active preset button
+        els.presetBtns.forEach((btn) => {
+          if (btn.dataset.preset === state.activePreset) {
+            btn.classList.add('active-preset');
+          } else {
+            btn.classList.remove('active-preset');
+          }
+        });
+
+        // Run simulation for current client count and all 1..10 client counts
+        const current = simulateForClients(state.clients);
+        const series = [];
+        for (let c = 1; c <= 10; c++) {
+          series.push(simulateForClients(c));
+        }
+
+        // Update KPI Cards
+        updateKPICards(current);
+
+        // Update Dual-Axis SVG Scaling Chart
+        renderScalingChart(series, state.clients);
+
+        // Update Stacked Allocation Bars
+        renderAllocationBars(current);
+
+        // Update Rule-Based Decision Insight Banner
+        renderAdvisoryInsight(current, series);
+      }
+
+      function syncToggleVisual(el, isChecked) {
+        el.setAttribute('aria-checked', isChecked ? 'true' : 'false');
+        if (isChecked) {
+          el.classList.add('checked');
+        } else {
+          el.classList.remove('checked');
+        }
+      }
+
+      function updateKPICards(m) {
+        // 1. Net Profit
+        els.kpiNetProfit.textContent = fmtCurrency(m.netProfit);
+        els.kpiNetProfit.style.color = m.netProfit < 0 ? '#E63946' : '#111111';
+        els.kpiMarginSub.textContent = `Gross: ${fmtCurrency(m.grossRevenue)} (${Math.round(m.profitMarginPct)}% margin)`;
+
+        // 2. Effective Hourly Rate
+        els.kpiEffectiveRate.textContent = fmtRate(m.effectiveHourlyRate);
+        const delta = m.effectiveHourlyRate - state.hourlyRate;
+        const deltaSign = delta >= 0 ? '+' : '-';
+        els.kpiRateDelta.textContent = `${deltaSign}$${Math.abs(delta).toFixed(2)} vs $${state.hourlyRate}/hr target`;
+        els.kpiRateDelta.className = `font-mono-num text-xs font-semibold mt-1.5 ${delta >= 0 ? 'text-[#2A9D8F]' : 'text-[#E63946]'}`;
+
+        // 3. Weekly Capacity Utilization
+        els.kpiCapacity.textContent = `${Math.round(m.utilizationPct)}%`;
+        els.kpiWeeklyHours.textContent = `${m.weeklyHours.toFixed(1)} hrs / 40h workweek`;
+
+        // Reset dynamic capacity card styles
+        els.cardCapacity.style.backgroundColor = '#FFFFFF';
+        els.kpiCapacity.style.color = '#111111';
+        if (m.utilizationPct > 100) {
+          els.cardCapacity.style.backgroundColor = '#FFF0F1';
+          els.kpiCapacity.style.color = '#E63946';
+          els.dotCapacity.style.backgroundColor = '#E63946';
+        } else if (m.utilizationPct >= 85) {
+          els.cardCapacity.style.backgroundColor = '#FFF9F0';
+          els.kpiCapacity.style.color = '#D97706';
+          els.dotCapacity.style.backgroundColor = '#F4A261';
+        } else {
+          els.dotCapacity.style.backgroundColor = '#2A9D8F';
+        }
+
+        // 4. Burnout Risk Index
+        els.kpiBurnoutLevel.textContent = m.burnoutLevel;
+        els.kpiBurnoutSub.textContent = m.burnoutSub;
+        els.cardBurnout.style.backgroundColor = '#FFFFFF';
+        els.kpiBurnoutLevel.style.color = '#111111';
+
+        if (m.burnoutLevel === 'CRITICAL') {
+          els.cardBurnout.style.backgroundColor = '#E63946';
+          els.kpiBurnoutLevel.style.color = '#FFFFFF';
+          els.kpiBurnoutSub.style.color = '#FFFFFF';
+          els.dotBurnout.style.backgroundColor = '#111111';
+        } else if (m.burnoutLevel === 'HIGH') {
+          els.cardBurnout.style.backgroundColor = '#FFF0F1';
+          els.kpiBurnoutLevel.style.color = '#E63946';
+          els.kpiBurnoutSub.style.color = '#111111';
+          els.dotBurnout.style.backgroundColor = '#E63946';
+        } else if (m.burnoutLevel === 'MODERATE') {
+          els.cardBurnout.style.backgroundColor = '#FFF9F0';
+          els.kpiBurnoutLevel.style.color = '#B45309';
+          els.kpiBurnoutSub.style.color = '#111111';
+          els.dotBurnout.style.backgroundColor = '#F4A261';
+        } else {
+          els.kpiBurnoutLevel.style.color = '#2A9D8F';
+          els.kpiBurnoutSub.style.color = '#111111';
+          els.dotBurnout.style.backgroundColor = '#2A9D8F';
+        }
+      }
+
+      /**
+       * Renders the Crisp Dual-Axis SVG Scaling Chart (Clients 1 to 10)
+       */
+      function renderScalingChart(series, selectedClients) {
+        const svg = els.scalingChartSvg;
+        const rect = svg.getBoundingClientRect();
+        const width = Math.max(rect.width || 680, 320);
+        const height = Math.max(rect.height || 300, 260);
+
+        const pad = { top: 28, right: 56, bottom: 38, left: 64 };
+        const plotW = width - pad.left - pad.right;
+        const plotH = height - pad.top - pad.bottom;
+
+        // Calculate Y-axis domains
+        const profits = series.map(d => d.netProfit);
+        const rates = series.map(d => d.effectiveHourlyRate);
+
+        const minProfit = Math.min(0, ...profits);
+        const maxProfit = Math.max(5000, ...profits) * 1.12;
+        const profitRange = maxProfit - minProfit || 1;
+
+        const minRate = 0;
+        const maxRate = Math.max(state.hourlyRate * 1.35, ...rates, 100) * 1.1;
+        const rateRange = maxRate - minRate || 1;
+
+        // Scale helpers
+        const xScale = (clientIdx) => pad.left + (clientIdx / 9) * plotW;
+        const yProfitScale = (val) => pad.top + plotH - ((val - minProfit) / profitRange) * plotH;
+        const yRateScale = (val) => pad.top + plotH - ((val - minRate) / rateRange) * plotH;
+
+        // Find Optimal Sweet Spot (max profit where weeklyHours <= 45)
+        let optimalPoint = null;
+        series.forEach((d) => {
+          if (d.weeklyHours <= BURNOUT_SWEET_SPOT_CAP && d.netProfit > 0) {
+            if (!optimalPoint || d.netProfit > optimalPoint.netProfit) {
+              optimalPoint = d;
+            }
+          }
+        });
+
+        // Build SVG markup
+        let svgContent = '';
+
+        // 1. Horizontal Gridlines & Left/Right Axis Labels (5 steps)
+        const steps = 4;
+        for (let i = 0; i <= steps; i++) {
+          const ratio = i / steps;
+          const y = pad.top + plotH - ratio * plotH;
+          const pVal = minProfit + ratio * profitRange;
+          const rVal = minRate + ratio * rateRange;
+
+          svgContent += `
+            <line x1="${pad.left}" y1="${y}" x2="${pad.left + plotW}" y2="${y}" stroke="#E2DFD7" stroke-width="1" />
+            <text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" fill="#1D3557" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700">
+              ${pVal >= 1000 || pVal <= -1000 ? '$' + Math.round(pVal / 1000) + 'k' : '$' + Math.round(pVal)}
+            </text>
+            <text x="${pad.left + plotW + 8}" y="${y + 4}" text-anchor="start" fill="#E63946" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700">
+              $${Math.round(rVal)}/h
+            </text>
+          `;
+        }
+
+        // Zero-profit baseline if negative profits exist
+        if (minProfit < 0) {
+          const zeroY = yProfitScale(0);
+          svgContent += `
+            <line x1="${pad.left}" y1="${zeroY}" x2="${pad.left + plotW}" y2="${zeroY}" stroke="#111111" stroke-width="1.5" stroke-dasharray="4 3" />
+          `;
+        }
+
+        // 2. Highlight Sweet Spot Zone Band (clients within <=45h/wk)
+        const sustainablePoints = series.filter(d => d.weeklyHours <= BURNOUT_SWEET_SPOT_CAP);
+        if (sustainablePoints.length > 0) {
+          const firstIdx = sustainablePoints[0].clientCount - 1;
+          const lastIdx = sustainablePoints[sustainablePoints.length - 1].clientCount - 1;
+          const bandX1 = Math.max(pad.left, xScale(firstIdx) - (plotW / 18));
+          const bandX2 = Math.min(pad.left + plotW, xScale(lastIdx) + (plotW / 18));
+          svgContent += `
+            <rect x="${bandX1}" y="${pad.top}" width="${Math.max(0, bandX2 - bandX1)}" height="${plotH}" fill="#2A9D8F" fill-opacity="0.10" />
+          `;
+        }
+
+        // 3. Profit Area Fill & Polyline
+        const profitCoords = series.map((d, idx) => `${xScale(idx)},${yProfitScale(d.netProfit)}`);
+        const baseZeroY = yProfitScale(Math.max(0, minProfit));
+        const areaPath = `M ${xScale(0)},${baseZeroY} L ${profitCoords.join(' L ')} L ${xScale(9)},${baseZeroY} Z`;
+
+        svgContent += `
+          <path d="${areaPath}" fill="#1D3557" fill-opacity="0.12" />
+          <polyline points="${profitCoords.join(' ')}" fill="none" stroke="#1D3557" stroke-width="3" stroke-linejoin="round" />
+        `;
+
+        // 4. Effective Hourly Rate Polyline
+        const rateCoords = series.map((d, idx) => `${xScale(idx)},${yRateScale(d.effectiveHourlyRate)}`);
+        svgContent += `
+          <polyline points="${rateCoords.join(' ')}" fill="none" stroke="#E63946" stroke-width="2.5" stroke-dasharray="6 3" stroke-linejoin="round" />
+        `;
+
+        // 5. Selected Client Count Vertical Marker
+        const selIdx = selectedClients - 1;
+        const selX = xScale(selIdx);
+        svgContent += `
+          <line x1="${selX}" y1="${pad.top - 6}" x2="${selX}" y2="${pad.top + plotH}" stroke="#111111" stroke-width="2" />
+          <rect x="${selX - 34}" y="${pad.top - 22}" width="68" height="16" fill="#111111" rx="1" />
+          <text x="${selX}" y="${pad.top - 11}" text-anchor="middle" fill="#F8F7F4" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="700">
+            CURRENT
+          </text>
+        `;
+
+        // 6. Optimal Sweet Spot Callout Marker (if distinct or highlighted)
+        if (optimalPoint) {
+          const optIdx = optimalPoint.clientCount - 1;
+          const optX = xScale(optIdx);
+          const optY = yProfitScale(optimalPoint.netProfit);
+          svgContent += `
+            <circle cx="${optX}" cy="${optY}" r="9" fill="none" stroke="#2A9D8F" stroke-width="2.5" />
+          `;
+          if (optimalPoint.clientCount !== selectedClients) {
+            svgContent += `
+              <rect x="${optX - 38}" y="${pad.top - 22}" width="76" height="16" fill="#2A9D8F" stroke="#111111" stroke-width="1" rx="1" />
+              <text x="${optX}" y="${pad.top - 11}" text-anchor="middle" fill="#111111" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="700">
+                SWEET SPOT
+              </text>
+            `;
+          }
+        }
+
+        // 7. Outer Chart Frame Axes
+        svgContent += `
+          <line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${pad.top + plotH}" stroke="#111111" stroke-width="2" />
+          <line x1="${pad.left + plotW}" y1="${pad.top}" x2="${pad.left + plotW}" y2="${pad.top + plotH}" stroke="#111111" stroke-width="2" />
+          <line x1="${pad.left}" y1="${pad.top + plotH}" x2="${pad.left + plotW}" y2="${pad.top + plotH}" stroke="#111111" stroke-width="2" />
+        `;
+
+        // 8. Data Nodes, X-Axis Labels, and Interactive Hover Hit-Targets
+        const colWidth = plotW / 9;
+        series.forEach((d, idx) => {
+          const cx = xScale(idx);
+          const py = yProfitScale(d.netProfit);
+          const ry = yRateScale(d.effectiveHourlyRate);
+          const isSelected = d.clientCount === selectedClients;
+
+          // X-axis tick & client number
+          svgContent += `
+            <text x="${cx}" y="${pad.top + plotH + 18}" text-anchor="middle" fill="${isSelected ? '#E63946' : '#111111'}" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="${isSelected ? '800' : '600'}">
+              ${d.clientCount}
+            </text>
+          `;
+
+          // Profit Node (Square Swiss Geometric Point)
+          const pSize = isSelected ? 9 : 6;
+          svgContent += `
+            <rect x="${cx - pSize / 2}" y="${py - pSize / 2}" width="${pSize}" height="${pSize}" fill="${isSelected ? '#F4A261' : '#1D3557'}" stroke="#111111" stroke-width="1.5" />
+          `;
+
+          // Effective Rate Node (Circle Point)
+          const rRad = isSelected ? 5.5 : 4;
+          svgContent += `
+            <circle cx="${cx}" cy="${ry}" r="${rRad}" fill="#E63946" stroke="#111111" stroke-width="1.5" />
+          `;
+
+          // Invisible Vertical Hover Column for effortless mouse/touch inspection
+          svgContent += `
+            <rect class="chart-hover-col cursor-pointer" data-idx="${idx}" x="${cx - colWidth / 2}" y="${pad.top}" width="${colWidth}" height="${plotH}" fill="transparent" />
+          `;
+        });
+
+        // X-axis Title
+        svgContent += `
+          <text x="${pad.left + plotW / 2}" y="${height - 4}" text-anchor="middle" fill="#111111" font-family="Plus Jakarta Sans, sans-serif" font-size="11" font-weight="800" letter-spacing="0.08em">
+            ACTIVE RETAINER CLIENTS
+          </text>
+        `;
+
+        svg.innerHTML = svgContent;
+
+        // Attach hover & click listeners to columns
+        const cols = svg.querySelectorAll('.chart-hover-col');
+        cols.forEach((col) => {
+          const idx = parseInt(col.dataset.idx, 10);
+          const pointData = series[idx];
+
+          col.addEventListener('mouseenter', (e) => showTooltip(e, pointData, optimalPoint));
+          col.addEventListener('mousemove', (e) => moveTooltip(e));
+          col.addEventListener('mouseleave', hideTooltip);
+          col.addEventListener('click', () => {
+            state.clients = pointData.clientCount;
+            state.activePreset = '';
+            updateDashboard();
+          });
+        });
+      }
+
+      function showTooltip(e, d, optimalPoint) {
+        els.ttClients.textContent = `${d.clientCount} ${d.clientCount === 1 ? 'Client' : 'Clients'}`;
+        els.ttProfit.textContent = fmtCurrency(d.netProfit);
+        els.ttEffRate.textContent = fmtRate(d.effectiveHourlyRate);
+        els.ttWeeklyHrs.textContent = `${d.weeklyHours.toFixed(1)} hrs/wk`;
+        els.ttUtil.textContent = `${Math.round(d.utilizationPct)}%`;
+
+        if (optimalPoint && d.clientCount === optimalPoint.clientCount) {
+          els.ttBadge.textContent = 'SWEET SPOT';
+          els.ttBadge.style.backgroundColor = '#2A9D8F';
+          els.ttBadge.style.color = '#111111';
+        } else if (d.weeklyHours > 45) {
+          els.ttBadge.textContent = 'BURNOUT';
+          els.ttBadge.style.backgroundColor = '#E63946';
+          els.ttBadge.style.color = '#FFFFFF';
+        } else {
+          els.ttBadge.textContent = d.burnoutLevel;
+          els.ttBadge.style.backgroundColor = '#F4A261';
+          els.ttBadge.style.color = '#111111';
+        }
+
+        els.chartTooltip.classList.remove('hidden');
+        moveTooltip(e);
+      }
+
+      function moveTooltip(e) {
+        const containerRect = els.scalingChartContainer.getBoundingClientRect();
+        const tooltipW = 224;
+        let left = e.clientX - containerRect.left + 14;
+        let top = e.clientY - containerRect.top - 20;
+
+        if (left + tooltipW > containerRect.width) {
+          left = e.clientX - containerRect.left - tooltipW - 14;
+        }
+        if (top < 0) top = 8;
+
+        els.chartTooltip.style.left = `${Math.max(4, left)}px`;
+        els.chartTooltip.style.top = `${top}px`;
+      }
+
+      function hideTooltip() {
+        els.chartTooltip.classList.add('hidden');
+      }
+
+      /**
+       * Renders the Horizontal Stacked Waterfall Bars for Dollars and Weekly Hours
+       */
+      function renderAllocationBars(m) {
+        // A. Dollar Breakdown (Net Profit + Overhead + Subcontractor + Unbilled Creep Opportunity Loss)
+        const positiveProfit = Math.max(0, m.netProfit);
+        const totalEconomicPool = positiveProfit + m.overhead + m.subcontractorCost + m.unbilledCreepDollarValue || 1;
+
+        const pctProfit = (positiveProfit / totalEconomicPool) * 100;
+        const pctOverhead = (m.overhead / totalEconomicPool) * 100;
+        const pctSub = (m.subcontractorCost / totalEconomicPool) * 100;
+        const pctCreep = (m.unbilledCreepDollarValue / totalEconomicPool) * 100;
+
+        els.totalPotentialDollar.textContent = `Total Value Pool: ${fmtCurrency(totalEconomicPool)}/mo`;
+
+        els.barNetProfit.style.width = `${pctProfit}%`;
+        els.barNetProfit.textContent = pctProfit > 14 ? `${Math.round(pctProfit)}%` : '';
+
+        els.barOverhead.style.width = `${pctOverhead}%`;
+        els.barOverhead.style.borderLeftWidth = pctOverhead > 0 ? '2px' : '0px';
+        els.barOverhead.textContent = pctOverhead > 10 ? `${Math.round(pctOverhead)}%` : '';
+
+        els.barSubcontractor.style.width = `${pctSub}%`;
+        els.barSubcontractor.style.borderLeftWidth = pctSub > 0 ? '2px' : '0px';
+        els.barSubcontractor.textContent = pctSub > 10 ? `${Math.round(pctSub)}%` : '';
+
+        els.barCreepLoss.style.width = `${pctCreep}%`;
+        els.barCreepLoss.style.borderLeftWidth = pctCreep > 0 ? '2px' : '0px';
+        els.barCreepLoss.textContent = pctCreep > 10 ? `${Math.round(pctCreep)}%` : '';
+
+        els.legProfit.textContent = fmtCurrency(m.netProfit);
+        els.legProfit.style.color = m.netProfit < 0 ? '#E63946' : '#111111';
+        els.legOverhead.textContent = fmtCurrency(m.overhead);
+        els.legSubcontract.textContent = fmtCurrency(m.subcontractorCost);
+        els.legCreepLoss.textContent = fmtCurrency(m.unbilledCreepDollarValue);
+
+        // B. Weekly Hours Breakdown
+        const coreWk = m.coreMonthlyHours / WEEKS_PER_MONTH;
+        const creepWk = m.creepMonthlyHours / WEEKS_PER_MONTH;
+        const maintWk = m.maintMonthlyHours / WEEKS_PER_MONTH;
+        const totalWk = m.weeklyHours;
+        const overtimeWk = Math.max(0, totalWk - STANDARD_WEEKLY_HOURS);
+
+        // Scale bar against max(40h standard week, totalWk) so under-capacity shows empty headroom
+        const barScaleMax = Math.max(STANDARD_WEEKLY_HOURS, totalWk);
+
+        // Split non-overtime vs overtime visually
+        const regularCap = Math.min(totalWk, STANDARD_WEEKLY_HOURS);
+        const regularScaleFactor = totalWk > 0 ? (regularCap / totalWk) : 1;
+
+        const wCore = ((coreWk * regularScaleFactor) / barScaleMax) * 100;
+        const wCreep = ((creepWk * regularScaleFactor) / barScaleMax) * 100;
+        const wMaint = ((maintWk * regularScaleFactor) / barScaleMax) * 100;
+        const wOvertime = (overtimeWk / barScaleMax) * 100;
+
+        els.totalWeeklyHoursLabel.textContent = `Total Workload: ${totalWk.toFixed(1)} hrs/wk (${Math.round(m.utilizationPct)}% cap)`;
+
+        els.barCoreHours.style.width = `${wCore}%`;
+        els.barCoreHours.textContent = wCore > 14 ? `${coreWk.toFixed(1)}h` : '';
+
+        els.barCreepHours.style.width = `${wCreep}%`;
+        els.barCreepHours.style.borderLeftWidth = wCreep > 0 ? '2px' : '0px';
+        els.barCreepHours.textContent = wCreep > 10 ? `${creepWk.toFixed(1)}h` : '';
+
+        els.barMaintHours.style.width = `${wMaint}%`;
+        els.barMaintHours.style.borderLeftWidth = wMaint > 0 ? '2px' : '0px';
+        els.barMaintHours.textContent = wMaint > 9 ? `${maintWk.toFixed(1)}h` : '';
+
+        els.barOvertimeHours.style.width = `${wOvertime}%`;
+        els.barOvertimeHours.style.borderLeftWidth = wOvertime > 0 ? '2px' : '0px';
+        els.barOvertimeHours.textContent = wOvertime > 10 ? `+${overtimeWk.toFixed(1)}h OT` : '';
+
+        els.legCoreHrs.textContent = `${coreWk.toFixed(1)} hrs/wk`;
+        els.legCreepHrs.textContent = `${creepWk.toFixed(1)} hrs/wk`;
+        els.legMaintHrs.textContent = `${maintWk.toFixed(1)} hrs/wk`;
+        els.legOvertimeHrs.textContent = `${overtimeWk.toFixed(1)} hrs/wk`;
+        els.legOvertimeHrs.style.color = overtimeWk > 0 ? '#E63946' : '#111111';
+      }
+
+      /**
+       * Generates context-aware, actionable agency advisory insights
+       */
+      function renderAdvisoryInsight(m, series) {
+        // Find optimal client count
+        let optimal = series[0];
+        series.forEach((d) => {
+          if (d.weeklyHours <= BURNOUT_SWEET_SPOT_CAP && d.netProfit > optimal.netProfit) {
+            optimal = d;
+          }
+        });
+
+        // Default cobalt banner
+        els.insightBanner.style.backgroundColor = '#1D3557';
+        els.insightBadge.style.backgroundColor = '#F4A261';
+        els.insightBadge.style.color = '#111111';
+
+        if (m.netProfit <= 0) {
+          els.insightBanner.style.backgroundColor = '#E63946';
+          els.insightBadge.textContent = 'MARGIN ALERT';
+          els.insightHeadline.textContent = `Current configuration loses ${fmtCurrency(Math.abs(m.netProfit))}/mo after overhead.`;
+          els.insightBody.textContent = `At ${state.clients} client(s) and $${state.hourlyRate}/hr, revenue (${fmtCurrency(m.grossRevenue)}) doesn't cover your ${fmtCurrency(state.overhead)} monthly overhead${state.subcontract ? ' and contractor costs' : ''}. Raise your hourly rate, enable Value-Based Pricing, or add retainer clients.`;
+          return;
+        }
+
+        if (m.weeklyHours > 45 && !state.subcontract) {
+          els.insightBanner.style.backgroundColor = '#E63946';
+          els.insightBadge.textContent = 'CAPACITY BOTTLENECK';
+          const simSub = simulateForClients(state.clients, { ...state, subcontract: true });
+          els.insightHeadline.textContent = `Burnout Zone: ${state.clients} clients requires ${m.weeklyHours.toFixed(1)} hrs/wk (${Math.round(m.utilizationPct)}% capacity).`;
+          els.insightBody.textContent = `Toggling "Subcontract Web Development" cuts your personal delivery load to ${simSub.weeklyHours.toFixed(1)} hrs/wk while still retaining ${fmtCurrency(simSub.netProfit)}/mo in net profit.`;
+          return;
+        }
+
+        if (m.weeklyHours > 45 && state.subcontract) {
+          els.insightBanner.style.backgroundColor = '#E63946';
+          els.insightBadge.textContent = 'OVER-SCALED';
+          els.insightHeadline.textContent = `Even with subcontracting, ${state.clients} clients pushes you to ${m.weeklyHours.toFixed(1)} hrs/wk.`;
+          els.insightBody.textContent = `Your studio's optimal sweet spot is ${optimal.clientCount} client(s) (${fmtCurrency(optimal.netProfit)}/mo at ${optimal.weeklyHours.toFixed(1)} hrs/wk). Consider trimming low-margin retainers or raising rates by +$25/hr.`;
+          return;
+        }
+
+        if (!state.valuePricing && state.scopeCreepPct >= 15) {
+          const simVal = simulateForClients(state.clients, { ...state, valuePricing: true });
+          const profitGain = simVal.netProfit - m.netProfit;
+          els.insightBadge.textContent = 'PRICING OPPORTUNITY';
+          els.insightHeadline.textContent = `Scope creep is eating ${fmtCurrency(m.unbilledCreepDollarValue)}/mo (${(m.creepMonthlyHours / WEEKS_PER_MONTH).toFixed(1)} hrs/wk) of unbilled time.`;
+          els.insightBody.textContent = `Enabling "Value-Based Pricing Mode" caps unbilled revisions at 5% and adds a +20% package premium—boosting net profit by +${fmtCurrency(profitGain)}/mo and lifting your effective rate to ${fmtRate(simVal.effectiveHourlyRate)}.`;
+          return;
+        }
+
+        if (state.clients < optimal.clientCount && m.utilizationPct < 75) {
+          const extraClients = optimal.clientCount - state.clients;
+          els.insightBadge.textContent = 'GROWTH HEADROOM';
+          els.insightHeadline.textContent = `You have ${(STANDARD_WEEKLY_HOURS - m.weeklyHours).toFixed(1)} hrs/wk of open studio capacity available.`;
+          els.insightBody.textContent = `Adding ${extraClients} more client(s) to reach your ${optimal.clientCount}-client sweet spot increases monthly net profit from ${fmtCurrency(m.netProfit)} to ${fmtCurrency(optimal.netProfit)} while staying under 45 hrs/wk.`;
+          return;
+        }
+
+        // Healthy Sweet Spot State
+        els.insightBanner.style.backgroundColor = '#1D3557';
+        els.insightBadge.style.backgroundColor = '#2A9D8F';
+        els.insightBadge.textContent = 'SWEET SPOT ACHIEVED';
+        els.insightHeadline.textContent = `High-efficiency studio model: ${fmtCurrency(m.netProfit)}/mo net profit at ${m.weeklyHours.toFixed(1)} hrs/wk.`;
+        els.insightBody.textContent = `Your effective rate is ${fmtRate(m.effectiveHourlyRate)} (${Math.round(m.profitMarginPct)}% net margin). ${!state.maintenance ? 'Tip: Toggling "Hosting & Maintenance" adds +' + fmtCurrency(350 * state.clients) + '/mo in recurring revenue for only +' + ((3 * state.clients) / WEEKS_PER_MONTH).toFixed(1) + ' hrs/wk.' : 'Recurring maintenance is active and stabilizing your baseline cashflow.'}`;
+      }
+
+      // Bind Slider Events
+      function bindEvents() {
+        const sliderMap = [
+          { el: els.sliderRate, key: 'hourlyRate' },
+          { el: els.sliderHours, key: 'hoursPerClient' },
+          { el: els.sliderClients, key: 'clients' },
+          { el: els.sliderCreep, key: 'scopeCreepPct' },
+          { el: els.sliderOverhead, key: 'overhead' }
+        ];
+
+        sliderMap.forEach(({ el, key }) => {
+          el.addEventListener('input', (e) => {
+            state[key] = Number(e.target.value);
+            state.activePreset = '';
+            updateDashboard();
+          });
+        });
+
+        // Toggle Switches
+        const toggleMap = [
+          { el: els.toggleRush, key: 'rushFee' },
+          { el: els.toggleMaintenance, key: 'maintenance' },
+          { el: els.toggleSubcontract, key: 'subcontract' },
+          { el: els.toggleValue, key: 'valuePricing' }
+        ];
+
+        toggleMap.forEach(({ el, key }) => {
+          el.addEventListener('click', () => {
+            state[key] = !state[key];
+            state.activePreset = '';
+            updateDashboard();
+          });
+        });
+
+        // Preset Buttons
+        els.presetBtns.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const presetName = btn.dataset.preset;
+            const presetConfig = PRESETS[presetName];
+            if (presetConfig) {
+              Object.assign(state, presetConfig);
+              state.activePreset = presetName;
+              updateDashboard();
+            }
+          });
+        });
+
+        // Responsive SVG resize redraw
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => {
+            updateDashboard();
+          }, 80);
+        });
+      }
+
+      // Initialize on Window Load
+      window.addEventListener('load', () => {
+        bindEvents();
+        updateDashboard();
+      });
+    })();
+  </script>
+</body>
+</html>
